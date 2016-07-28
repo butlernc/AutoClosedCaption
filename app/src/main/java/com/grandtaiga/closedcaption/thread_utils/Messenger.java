@@ -64,7 +64,7 @@ public class Messenger {
         init();
         bundle.putString(keys[1], "start a new Word Chunk");
         message.setData(bundle);
-        Intake.handler.sendMessage(message);
+        //Intake.handler.sendMessage(message);
     }
 
     /**

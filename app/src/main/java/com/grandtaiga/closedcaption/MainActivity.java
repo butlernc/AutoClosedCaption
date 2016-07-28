@@ -15,13 +15,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.grandtaiga.closedcaption.speech.SpeechController;
+import com.grandtaiga.closedcaption.speech.TranslatorFactory;
+import com.grandtaiga.closedcaption.utils.ConversionCallback;
 import com.grandtaiga.closedcaption.wordchunk.WordChunk;
 import com.grandtaiga.closedcaption.wordchunk.WordChunkCreator;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements ConversionCallback {
 
     Chronometer chronometer;
     Button start, in, out;
@@ -31,6 +33,7 @@ public class MainActivity extends Activity {
     static int startIndex, endIndex = 0;
     private final int REQ_CODE_SPEECH_INPUT = 100;
     boolean started = false;
+    boolean message;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,22 +56,25 @@ public class MainActivity extends Activity {
 
                 if(!started) {
                     started = true;
+                    //zero out the chronometer
+                    chronometer.setText("00:00");
                     chronometer.start();
                     start.setText("Stop");
-                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                    intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 100000);
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-                    intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                            "Play Video");
-                    try {
-                        startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-                    } catch (ActivityNotFoundException a) {
-                        Toast.makeText(getBaseContext(),
-                                "Not supported",
-                                Toast.LENGTH_SHORT).show();
-                    }
+                    TranslatorFactory.getInstance().getTranslator(TranslatorFactory.TRANSLATOR_TYPE.SPEECH_TO_TEXT, MainActivity.this).initialize("Hello There", MainActivity.this);
+//                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+//                    intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 100000);
+//                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+//                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+//                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+//                    intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+//                            "Play Video");
+//                    try {
+//                        startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+//                    } catch (ActivityNotFoundException a) {
+//                        Toast.makeText(getBaseContext(),
+//                                "Not supported",
+//                                Toast.LENGTH_SHORT).show();
+//                    }
                 }else{
                     started = false;
                     chronometer.stop();
@@ -116,6 +122,22 @@ public class MainActivity extends Activity {
             }
 
         }
+    }
+
+    @Override
+    public void onSuccess(String result) {
+        Toast.makeText(this, "Result " + result, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onCompletion() {
+        Toast.makeText(this, "Done ", Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onErrorOccured(String errorMessage) {
+        Toast.makeText(this, "Error " + errorMessage, Toast.LENGTH_SHORT).show();
     }
 
     private void startWordChunk(String time) {
