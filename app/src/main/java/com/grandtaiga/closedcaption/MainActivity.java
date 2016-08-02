@@ -1,9 +1,14 @@
 package com.grandtaiga.closedcaption;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.SystemClock;
 import android.speech.RecognizerIntent;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +37,8 @@ public class MainActivity extends Activity implements ConversionCallback {
     static String startTime = "";
     static int startIndex, endIndex = 0;
     private final int REQ_CODE_SPEECH_INPUT = 100;
+    static int MY_PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
+
     boolean started = false;
     boolean message;
     @Override
@@ -57,7 +64,7 @@ public class MainActivity extends Activity implements ConversionCallback {
                 if(!started) {
                     started = true;
                     //zero out the chronometer
-                    chronometer.setText("00:00");
+                    chronometer.setBase(SystemClock.elapsedRealtime());
                     chronometer.start();
                     start.setText("Stop");
                     TranslatorFactory.getInstance().getTranslator(TranslatorFactory.TRANSLATOR_TYPE.SPEECH_TO_TEXT, MainActivity.this).initialize("Hello There", MainActivity.this);
@@ -79,6 +86,7 @@ public class MainActivity extends Activity implements ConversionCallback {
                     started = false;
                     chronometer.stop();
                     Log.d("END TIME", chronometer.getText().toString());
+                    chronometer.setBase(SystemClock.elapsedRealtime());
                     start.setText("Start");
                 }
             }
@@ -148,5 +156,34 @@ public class MainActivity extends Activity implements ConversionCallback {
         String cc = (textDisplay.getText().subSequence(startIndex, endIndex)).toString();
         String[] params = {startTime, endTime, cc};
         WordChunkCreator.create(params);
+    }
+
+    private void checkPermissions() {
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.RECORD_AUDIO)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO},
+                        MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
     }
 }
